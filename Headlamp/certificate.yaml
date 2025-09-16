@@ -1,0 +1,45 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned-bootstrap
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: headlamp-root-ca
+spec:
+  isCA: true
+  commonName: Headlamp Local CA
+  secretName: headlamp-root-ca
+  duration: 87600h 
+  issuerRef:
+    name: selfsigned-bootstrap
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: headlamp-ca-issuer
+spec:
+  ca:
+    secretName: headlamp-root-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: headlamp-cert
+spec:
+  secretName: headlamp-tls               # <-- NGINX will mount this
+  commonName: headlamp.env1.lab.test
+  dnsNames:
+    - headlamp.env1.lab.test
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  duration: 17520h 
+  renewBefore: 720h
+  issuerRef:
+    name: headlamp-ca-issuer
+    kind: Issuer
